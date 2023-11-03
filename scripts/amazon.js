@@ -1,4 +1,4 @@
-import { cart,addToCart } from "../data/cart.js";
+import { cart, addToCart, calculateCartQuantity } from "../data/cart.js";
 import { products } from "../data/products.js";
 import { formatCurrecncy } from "./utils/money.js";
 
@@ -29,7 +29,7 @@ products.forEach((product) => {
     <div class="product-price">$${formatCurrecncy(product.priceCents)}</div>
 
     <div class="product-quantity-container">
-      <select>
+      <select class='js-quantity-selector-${product.id}'>
         <option selected value="1">1</option>
         <option value="2">2</option>
         <option value="3">3</option>
@@ -45,7 +45,7 @@ products.forEach((product) => {
 
     <div class="product-spacer"></div>
 
-    <div class="added-to-cart">
+    <div class="added-to-cart js-added-to-cart-${product.id}">
       <img src="images/icons/checkmark.png" />
       Added
     </div>
@@ -57,22 +57,33 @@ products.forEach((product) => {
 });
 
 document.querySelector(".js-products-grid").innerHTML = productsHTML;
-
-
+const addedMessageTimeouts = {};
 
 function updateCartQuantity() {
-  let cartQuantity = 0;
-  cart.forEach((cartItem) => {
-    cartQuantity += cartItem.quantity;
-  });
+  const cartQuantity = calculateCartQuantity();
 
   document.querySelector(".js-cart-quantity").innerHTML = cartQuantity;
 }
+updateCartQuantity();
 
 document.querySelectorAll(".js-add-to-cart").forEach((button) => {
   button.addEventListener("click", () => {
     const productId = button.dataset.productId;
     addToCart(productId);
+    const addedMessage = document.querySelector(
+      `.js-added-to-cart-${productId}`
+    );
+    addedMessage.classList.add("added-to-cart-visible");
+    setTimeout(() => {
+      const previousTimeoutId = addedMessageTimeouts[productId];
+      if (previousTimeoutId) {
+        clearTimeout(previousTimeoutId);
+      }
+      const timeoutId = setTimeout(() => {
+        addedMessage.classList.remove("added-to-cart-visible");
+      }, 2000);
+      addedMessageTimeouts[productId] = timeoutId;
+    });
     updateCartQuantity();
   });
 });
