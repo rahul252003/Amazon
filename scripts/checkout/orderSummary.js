@@ -11,8 +11,10 @@ import dayjs from "https://unpkg.com/dayjs@1.11.10/esm/index.js";
 import {
   deliveryOptions,
   getDeliveryOption,
+  calculateDeliveryDate,
 } from "../../data/deliveryOptions.js";
 import { renderPaymentSummary } from "./paymentSummary.js";
+import { renderCheckoutHeader } from "./checkoutHeader.js";
 
 export function renderOderSummary() {
   let cartSummaryHTML = "";
@@ -24,9 +26,7 @@ export function renderOderSummary() {
     const deliveryOptionId = cartItem.deliveryOptionId;
     const deliveryOption = getDeliveryOption(deliveryOptionId);
 
-    const today = dayjs();
-    const deliveryDate = today.add(deliveryOption.deliveryDays, "days");
-    const dateString = deliveryDate.format("dddd, MMMM D");
+    const dateString = calculateDeliveryDate(deliveryOption);
 
     cartSummaryHTML += `<div class="cart-item-container js-cart-item-container-${
       matchingProduct.id
@@ -82,9 +82,7 @@ export function renderOderSummary() {
   function deliveryOptionsHTML(matchingProduct, cartItem) {
     let html = "";
     deliveryOptions.forEach((deliveryOption) => {
-      const today = dayjs();
-      const deliveryDate = today.add(deliveryOption.deliveryDays, "days");
-      const dateString = deliveryDate.format("dddd, MMMM D");
+      const dateString = calculateDeliveryDate(deliveryOption);
 
       const priceString =
         deliveryOption.priceCents === 0
@@ -118,10 +116,8 @@ export function renderOderSummary() {
       const productId = link.dataset.productId;
       removeFromCart(productId);
 
-      const conatiner = document.querySelector(
-        `.js-cart-item-container-${productId}`
-      );
-      conatiner.remove();
+      renderCheckoutHeader();
+      renderOderSummary();
       updateCartQuantity();
       renderPaymentSummary();
     });
@@ -177,7 +173,7 @@ export function renderOderSummary() {
       const { productId, deliveryOptionId } = element.dataset;
       updateDeliveryOption(productId, deliveryOptionId);
       renderOderSummary();
-      renderPaymentSummary()
+      renderPaymentSummary();
     });
   });
 }
